@@ -513,10 +513,7 @@ footer {
     </div>
     <div class="comedy-right reveal d2">
       <p class="section-p">Mike has been performing stand-up for years. His material is earned, specific, and doesn't need a location to explain it. Fill out the form and let's talk.</p>
-      <form class="booking-form" style="margin-top:32px;" name="booking" method="POST" action="https://formsubmit.co/themikesalvi@gmail.com">
-        <input type="hidden" name="_subject" value="New Booking Request via mikesalvi.com">
-        <input type="hidden" name="_next" value="https://www.mikesalvi.com/thank-you.html">
-        <input type="hidden" name="_captcha" value="false">
+      <form class="booking-form" id="bookingForm" style="margin-top:32px;">
         <div class="bf-row">
           <div class="fg">
             <label for="bname">Name</label>
@@ -539,7 +536,7 @@ footer {
           <label for="bmsg">Details</label>
           <textarea id="bmsg" name="message" placeholder="Tell me what you've got..."></textarea>
         </div>
-        <button type="submit" class="form-btn">Send Booking Request</button>
+        <button type="submit" class="form-btn" id="bookingBtn">Send Booking Request</button>
       </form>
     </div>
   </div>
@@ -572,34 +569,31 @@ footer {
       <p class="section-p">For collaborations, press, licensing, or anything that doesn't fit the booking form. Reach out directly.</p>
     </div>
     <div class="reveal d2">
-      <form class="contact-form" name="contact" method="POST" action="https://formsubmit.co/themikesalvi@gmail.com">
-        <input type="hidden" name="_subject" value="New Message via mikesalvi.com">
-        <input type="hidden" name="_next" value="https://www.mikesalvi.com/thank-you.html">
-        <input type="hidden" name="_captcha" value="false">
+      <form class="contact-form" id="contactForm">
         <div class="fg">
           <label for="cname">Name</label>
-          <input type="text" id="cname" name="name" placeholder="Your name" required>
+          <input type="text" id="cname" placeholder="Your name" required>
         </div>
         <div class="fg">
           <label for="cemail">Email</label>
-          <input type="email" id="cemail" name="email" placeholder="your@email.com" required>
+          <input type="email" id="cemail" placeholder="your@email.com" required>
         </div>
         <div class="fg">
           <label for="creason">Reason for Contact</label>
-          <select id="creason" name="reason">
+          <select id="creason">
             <option value="">Select one</option>
-            <option value="collab">Collaboration</option>
-            <option value="licensing">Licensing / IP</option>
-            <option value="press">Press / Media</option>
-            <option value="production">Production Inquiry</option>
-            <option value="other">Other</option>
+            <option value="Collaboration">Collaboration</option>
+            <option value="Licensing / IP">Licensing / IP</option>
+            <option value="Press / Media">Press / Media</option>
+            <option value="Production Inquiry">Production Inquiry</option>
+            <option value="Other">Other</option>
           </select>
         </div>
         <div class="fg">
           <label for="cmsg">Message</label>
-          <textarea id="cmsg" name="message" placeholder="Tell me what you've got..." required></textarea>
+          <textarea id="cmsg" placeholder="Tell me what you've got..." required></textarea>
         </div>
-        <button type="submit" class="form-btn">Send It</button>
+        <button type="submit" class="form-btn" id="contactBtn">Send It</button>
       </form>
     </div>
   </div>
@@ -615,10 +609,12 @@ footer {
     <a href="https://xlnzproductions.com" target="_blank" rel="noopener">XLNZ</a>
     <a href="#contact">Contact</a>
   </nav>
-  <p class="footer-copy">&#169; 2026 Mike Salvi. All rights reserved.</p>
+  <p class="footer-copy">&#169; 2025 Mike Salvi. All rights reserved.</p>
 </footer>
 
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
+// ── NAV ──
 const nav = document.getElementById("site-nav");
 window.addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 50));
 const toggle = document.getElementById("navToggle");
@@ -633,14 +629,91 @@ document.querySelectorAll(".mm-link").forEach(a => a.addEventListener("click", (
   menu.classList.remove("open");
   document.body.style.overflow = "";
 }));
+
+// ── REVEAL ──
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); obs.unobserve(e.target); } });
 }, { threshold: 0.1, rootMargin: "0px 0px -32px 0px" });
 document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+
+// ── SMOOTH SCROLL ──
 document.querySelectorAll("a[href^='#']").forEach(a => a.addEventListener("click", e => {
   const t = document.querySelector(a.getAttribute("href"));
   if (t) { e.preventDefault(); t.scrollIntoView({ behavior: "smooth", block: "start" }); }
 }));
+
+// ── EMAILJS ──
+emailjs.init("DzZTOioQSyciJkX5r");
+
+function showSuccess(formEl, btnEl, originalText) {
+  formEl.reset();
+  btnEl.textContent = "Sent!";
+  btnEl.style.background = "#2a7a2a";
+  setTimeout(() => {
+    btnEl.textContent = originalText;
+    btnEl.style.background = "";
+  }, 4000);
+}
+
+function showError(btnEl, originalText) {
+  btnEl.textContent = "Something went wrong — try again";
+  btnEl.style.background = "#7a2a2a";
+  setTimeout(() => {
+    btnEl.textContent = originalText;
+    btnEl.style.background = "";
+  }, 4000);
+}
+
+// Booking form
+document.getElementById("bookingForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const btn = document.getElementById("bookingBtn");
+  btn.textContent = "Sending...";
+  btn.disabled = true;
+
+  const bParams = {
+    from_name:  document.getElementById("bname").value,
+    user_email: document.getElementById("bemail").value,
+    venue:      document.getElementById("bvenue").value,
+    date:       document.getElementById("bdate").value,
+    message:    document.getElementById("bmsg").value,
+    form_type:  "Booking Request"
+  };
+  emailjs.send("service_dgd1qdz", "template_pqvu4mm", bParams)
+    .then(() => emailjs.send("service_dgd1qdz", "template_1gruw7d", bParams))
+    .then(() => {
+      showSuccess(this, btn, "Send Booking Request");
+      window.location.href = "/thank-you.html";
+    }).catch(() => {
+      showError(btn, "Send Booking Request");
+      btn.disabled = false;
+    });
+});
+
+// Contact form
+document.getElementById("contactForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const btn = document.getElementById("contactBtn");
+  btn.textContent = "Sending...";
+  btn.disabled = true;
+
+  const cParams = {
+    from_name:  document.getElementById("cname").value,
+    user_email: document.getElementById("cemail").value,
+    reason:     document.getElementById("creason").value,
+    message:    document.getElementById("cmsg").value,
+    form_type:  "General Contact"
+  };
+  emailjs.send("service_dgd1qdz", "template_pqvu4mm", cParams)
+    .then(() => emailjs.send("service_dgd1qdz", "template_1gruw7d", cParams))
+    .then(() => {
+      showSuccess(this, btn, "Send It");
+      window.location.href = "/thank-you.html";
+    }).catch(() => {
+      showError(btn, "Send It");
+      btn.disabled = false;
+    });
+});
 </script>
 </body>
 </html>
